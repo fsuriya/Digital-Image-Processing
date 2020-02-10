@@ -13,5 +13,5 @@ def read_pgm(pgmf):
         raster.append(row)
     return raster
 
-f = open('cameraman.pgm', 'rb')
+f = open('cameraman.pgm')
 read_pgm(f)
