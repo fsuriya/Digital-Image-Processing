@@ -1,17 +1,15 @@
-def read_pgm(pgmf):
-    """Return a raster of integers from a PGM as a list of lists."""
-    assert pgmf.readline() == 'P5\n'
-    (width, height) = [int(i) for i in pgmf.readline().split()]
-    depth = int(pgmf.readline())
-    assert depth <= 255
+from readpgm import read_pgm, list_to_2D_list, copy
+from etc_function import createHistogram
+# from momentFunction import pqmoment, pqN, pqHu
+# from etc_function import createHistogram
+filename = "./image/test.pgm"
+converted_img = []
+mattrix_img = []
+col = 0
+row = 0
 
-    raster = []
-    for y in range(height):
-        row = []
-        for y in range(width):
-            row.append(ord(pgmf.read(1)))
-        raster.append(row)
-    return raster
+converted_img, col, row = read_pgm(filename, col, row)
+mattrix_img = list_to_2D_list(converted_img, mattrix_img, col, row)
 
-f = open('cameraman.pgm')
-read_pgm(f)
+print(mattrix_img)
+
