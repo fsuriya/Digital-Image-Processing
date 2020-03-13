@@ -44,147 +44,19 @@ grid = [[[0,0],[16,0],[32,0],[48,0],[64,0],[80,0],[96,0],[112,0],[128,0],[144,0]
 
 ################## Function ###########################
 def ControlGrid(disgrid, grid, image, row, col):
-    x_new = [0] * 4
-    y_new = [0] * 4
-    x = [0.0] * 4
-    y = [0.0] * 4
-    w = [0.0] * 4
-    xy = []
-    inverse = [[0.0] * 4] * 4
-    image_new = [[0] * col] * row
-
     for i in range(len(grid)-1):
         for j in range(len(grid[i])-1):
-            x_new[0] = grid[i][j][0]
-            x_new[1] = grid[i][j+1][0]
-            x_new[2] = grid[i+1][j][0]
-            x_new[3] = grid[i+1][j+1][0]
+            #find W1 - W8 here
 
-            y_new[0] = grid[i][j][1]
-            y_new[1] = grid[i][j+1][1]
-            y_new[2] = grid[i+1][j][1]
-            y_new[3] = grid[i+1][j+1][1]
+            ##################
 
-            # print(x_new)
-            # print(y_new)
-
-            for num in range(4):
-                temp = []
-                temp.append(x_new[num])
-                temp.append(y_new[num])
-                temp.append(x_new[num]*y_new[num])
-                temp.append(1)
-                xy.append(temp)
-
-            print("that is xy:"+str(xy))
-
-            inverse = invert(xy)
-
-            print("this is inverse:"+str(inverse))
-
-            x[0] = disgrid[i][j][0]
-            x[1] = disgrid[i][j+1][0]
-            x[2] = disgrid[i+1][j][0]
-            x[3] = disgrid[i+1][j+1][0]
-               
-            y[0] = disgrid[i][j][1]
-            y[1] = disgrid[i][j+1][1]
-            y[2] = disgrid[i+1][j][1]
-            y[3] = disgrid[i+1][j+1][1]
-
-            # print(x)
-            # print(y)   
-
-            w[0] = (inverse[0][0] * x[0]) + (inverse[0][1] * x[1]) + (inverse[0][2] * x[2]) + (inverse[0][3] * x[3])
-            w[1] = (inverse[1][0] * x[0]) + (inverse[1][1] * x[1]) + (inverse[1][2] * x[2]) + (inverse[1][3] * x[3])
-            w[2] = (inverse[2][0] * x[0]) + (inverse[2][1] * x[1]) + (inverse[2][2] * x[2]) + (inverse[2][3] * x[3])
-            w[3] = (inverse[3][0] * x[0]) + (inverse[3][1] * x[1]) + (inverse[3][2] * x[2]) + (inverse[3][3] * x[3])
-            w[4] = (inverse[0][0] * y[0]) + (inverse[0][1] * y[1]) + (inverse[0][2] * y[2]) + (inverse[0][3] * y[3])
-            w[5] = (inverse[1][0] * y[0]) + (inverse[1][1] * y[1]) + (inverse[1][2] * y[2]) + (inverse[1][3] * y[3])
-            w[6] = (inverse[2][0] * y[0]) + (inverse[2][1] * y[1]) + (inverse[2][2] * y[2]) + (inverse[2][3] * y[3])
-            w[7] = (inverse[3][0] * y[0]) + (inverse[3][1] * y[1]) + (inverse[3][2] * y[2]) + (inverse[3][3] * y[3])
-
+            #mapping new image here
             for k in range(y_new[0],y_new[2]):
                 for l in range(x_new[0],x_new[1]):
-                    xp = round(w[0]*l + w[1]*k + w[2]*l*k + w[3],0)
-                    yp = round(w[4]*l + w[5]*k + w[6]*l*k + w[7],0)
+                    xp = (w[0]*l + w[1]*k + w[2]*l*k + w[3],0)
+                    yp = (w[4]*l + w[5]*k + w[6]*l*k + w[7],0)
                     image_new[k][l] = image[yp][xp]
-        
-        return image_new
-
-def invert(xy):
-    n = len(xy)
-    x = [[0] * n] * n
-    b = []
-    index = [0] * n
-    for i in range(n):
-        temp = [0] * n
-        temp[i] = 1
-        b.append(temp)
-
-    Gaussian(xy, index)
-
-    for i in range(n-1):
-        for j in range(i+1,n):
-            for k in range(n):
-                b[index[j]][k] -= xy[index[j]][i]*b[index[i]][k]
-    
-    for i in range(n):
-        #############debug
-        if xy[index[n-1]][n-1] == 0:
-            xy[index[n-1]][n-1] = 1
-        ##################
-        x[n-1][i] = b[index[n-1]][i]/xy[index[n-1]][n-1]
-        for j in range(n-2,0,-1):
-            x[j][i] = b[index[j]][i]
-            for k in range(j+1,n):
-                x[j][i] -= xy[index[j]][k]*x[k][i]
-            x[j][i] /= xy[index[j]][j]
-    
-    return x
-
-def Gaussian(xy, index):
-    print("In Gussian")
-    print (xy)
-    print (index)
-
-    n = len(index)
-    c = [0.0] * n
-
-    for i in range(n):
-        index[i] = i
-    print(index)
-
-    for i in range(n):
-        c1 = 0
-        for j in range(n):
-            c0 = abs(xy[i][j])
-            if c0 > c1:
-                c1 = c0
-        c[i] = c1
-
-    k = 0
-    for j in range(n-1):
-        pi1 = 0
-        for i in range(j,n):
-            pi0 = abs(xy[index[i]][j])
-            pi0 /= c[index[i]]
-            if pi0 > pi1:
-                pi1 = pi0
-                k = i
-        
-        itmp = index[j]
-        index[j] = index[k]
-        index[k] = itmp
-        for i in range(j+1,n):
-            #########debug
-            if xy[index[j]][j] == 0:
-                xy[index[j]][j] = 1
-            ###############
-            pj = xy[index[i]][j]/xy[index[j]][j]
-            xy[index[i]][j] = pj
-            for l in range(j+1,n):
-                xy[index[i]][l] -= pj*xy[index[j]][l]
+            #######################
 ################### Main ##############################
 filename = "./image/distlenna.pgm"
 converted_img = []
@@ -196,7 +68,6 @@ row = 0
 converted_img, col, row = read_pgm(filename, col, row)
 image = list_to_2D_list(converted_img, mattrix_img, col, row)
 
-#image_new = [[0] * col] * row
 image_new = []
 for i in range(row):
     image_new_inloop = []

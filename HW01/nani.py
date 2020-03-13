@@ -1,25 +1,23 @@
-# def lastZero(x):
-#     for i in range(len(x)):
-#         if(x[i] == 0):
-#             return i
-#     return -1
+from readpgm import read_pgm, list_to_2D_list, copy
+from writepgm import writepgm
 
-# def editlastZero(x):
-#     point = -1
-#     for i in range(len(x)):
-#         if(x[i] == 0):
-#             point = i
-#     if point != -1:
-#         return point
-#     else:
-#         return -1
+filename = "./image/grid.pgm"
+converted_img = []
+mattrix_img = []
+col = 0
+row = 0
 
-# x = [[],[0],[1,2,0,3,0]]
-# for i in range(len(x)):
-#     print("Case : "+str(i+1))
-#     print(lastZero(x[i]))
-#     print(editlastZero(x[i]))
 
-from scipy.stats import norm
+converted_img, col, row = read_pgm(filename, col, row)
+image = list_to_2D_list(converted_img, mattrix_img, col, row)
+image_new = [[0] * col] * row
+test =[]
+for i in range(row):
+    test_inloop =[]
+    for j in range(col):
+        test_inloop.append(255)
+    test.append(test_inloop)
+print(test)
 
-print(norm.cdf(2.75, loc=2,scale=0.5))
+
+writepgm("new_lenna.pgm", test, col, row)
