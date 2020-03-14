@@ -1,97 +1,163 @@
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
+// C++ program to demostrate working of Guassian Elimination 
+// method 
+#include<bits/stdc++.h> 
+using namespace std; 
+  
+#define N 4        // Number of unknowns 
+  
+// function to reduce matrix to r.e.f.  Returns a value to  
+// indicate whether matrix is singular or not 
+int forwardElim(double mat[N][N+1]); 
+  
+// function to calculate the values of the unknowns 
+void backSub(double mat[N][N+1]); 
+  
+// function to get matrix content 
+void gaussianElimination(double mat[N][N+1]) 
+{ 
+    /* reduction into r.e.f. */
+    int singular_flag = forwardElim(mat); 
+  
+    /* if matrix is singular */
+    if (singular_flag != -1) 
+    { 
+        printf("Singular Matrix.\n"); 
+  
+        /* if the RHS of equation corresponding to 
+           zero row  is 0, * system has infinitely 
+           many solutions, else inconsistent*/
+        if (mat[singular_flag][N]) 
+            printf("Inconsistent System."); 
+        else
+            printf("May have infinitely many "
+                   "solutions."); 
+  
+        return; 
+    } 
+  
+    /* get solution to system and print it using 
+       backward substitution */
+    backSub(mat); 
+} 
+  
+// function for elementary operation of swapping two rows 
+void swap_row(double mat[N][N+1], int i, int j) 
+{ 
+    //printf("Swapped rows %d and %d\n", i, j); 
+  
+    for (int k=0; k<=N; k++) 
+    { 
+        double temp = mat[i][k]; 
+        mat[i][k] = mat[j][k]; 
+        mat[j][k] = temp; 
+    } 
+} 
+  
+// function to print matrix content at any stage 
+void print(double mat[N][N+1]) 
+{ 
+    for (int i=0; i<N; i++, printf("\n")) 
+        for (int j=0; j<=N; j++) 
+            printf("%lf ", mat[i][j]); 
+  
+    printf("\n"); 
+} 
+  
+// function to reduce matrix to r.e.f. 
+int forwardElim(double mat[N][N+1]) 
+{ 
+    for (int k=0; k<N; k++) 
+    { 
+        // Initialize maximum value and index for pivot 
+        int i_max = k; 
+        int v_max = mat[i_max][k]; 
+  
+        /* find greater amplitude for pivot if any */
+        for (int i = k+1; i < N; i++) 
+            if (abs(mat[i][k]) > v_max) 
+                v_max = mat[i][k], i_max = i; 
+  
+        /* if a prinicipal diagonal element  is zero, 
+         * it denotes that matrix is singular, and 
+         * will lead to a division-by-zero later. */
+        if (!mat[k][i_max]) 
+            return k; // Matrix is singular 
+  
+        /* Swap the greatest value row with current row */
+        if (i_max != k) 
+            swap_row(mat, k, i_max); 
+  
+  
+        for (int i=k+1; i<N; i++) 
+        { 
+            /* factor f to set current row kth element to 0, 
+             * and subsequently remaining kth column to 0 */
+            double f = mat[i][k]/mat[k][k]; 
+  
+            /* subtract fth multiple of corresponding kth 
+               row element*/
+            for (int j=k+1; j<=N; j++) 
+                mat[i][j] -= mat[k][j]*f; 
+  
+            /* filling lower triangular matrix with zeros*/
+            mat[i][k] = 0; 
+        } 
+  
+        //print(mat);        //for matrix state 
+    } 
+    //print(mat);            //for matrix state 
+    return -1; 
+} 
+  
+// function to calculate the values of the unknowns 
+void backSub(double mat[N][N+1]) 
+{ 
+    double x[N];  // An array to store solution 
+  
+    /* Start calculating from last equation up to the 
+       first */
+    for (int i = N-1; i >= 0; i--) 
+    { 
+        /* start with the RHS of the equation */
+        x[i] = mat[i][N]; 
+  
+        /* Initialize j to i+1 since matrix is upper 
+           triangular*/
+        for (int j=i+1; j<N; j++) 
+        { 
+            /* subtract all the lhs values 
+             * except the coefficient of the variable 
+             * whose value is being calculated */
+            x[i] -= mat[i][j]*x[j]; 
+        } 
+  
+        /* divide the RHS by the coefficient of the 
+           unknown being calculated */
+        x[i] = x[i]/mat[i][i]; 
+    } 
+  
+    printf("\nSolution for the system:\n"); 
+    for (int i=0; i<N; i++) 
+        printf("%lf\n", x[i]); 
+} 
+  
+// Driver program 
+int main() 
+{ 
+    /* input matrix */
+    double mat[N][N+1] = {{32, 31, 992, 1, 32}, 
+                          {48, 31, 1488, 1, 48}, 
+                          {32, 47, 1504, 1, 32},
+                          {48, 31, 1488, 1, 51} 
+                         }; 
+    
+    double mat2[N][N+1] = {{0,0,0,1,0},
+                           {16,0,0,1,16},
+                           {0,15,0,1,0},
+                           {16,15,240,1,16}
+                          };
 
-using namespace std;
-
-int main()
-{
-int row = 0, col = 0, num_of_rows = 0, num_of_cols = 0;
-stringstream ss;    
-ifstream infile("./image/new_lenna.pgm", ios::binary);
-
-string inputLine = "";
-
-getline(infile,inputLine);      // read the first line : P5
-if(inputLine.compare("P5") != 0) cerr << "Version error" << endl;
-cout << "Version : " << inputLine << endl;
-
-// getline(infile,inputLine);  // read the second line : comment
-// cout << "Comment : " << inputLine << endl;
-
-ss << infile.rdbuf();   //read the third line : width and height
-ss >> num_of_cols >> num_of_rows;
-cout << num_of_cols << " columns and " << num_of_rows << " rows" << endl;
-
-int max_val;  //maximum intensity value : 255
-ss >> max_val;
-cout<<max_val;
-
-unsigned char pixel;
-
-int **pixel_value = new int*[num_of_rows];
-for(int i = 0; i < num_of_rows; ++i) {
-    pixel_value[i] = new int[num_of_cols];
-}
-
-int **integral = new int*[num_of_rows];
-for(int i = 0; i < num_of_rows; ++i) {
-    integral[i] = new int[num_of_cols];
-}
-
-for (row = 0; row < num_of_rows; row++){    //record the pixel values
-    for (col = 0; col < num_of_cols; col++){
-         ss >> pixel;
-         pixel_value[row][col]= pixel;
-    }
-}
-
-
-integral[0][0]=pixel_value[0][0];    
-for(int i=1; i<num_of_cols;i++){            //compute integral image
-    integral[0][i]=integral[0][i-1]+pixel_value[0][i];      
-}   
-for (int i=1;i<num_of_rows; i++){
-    integral[i][0]=integral[i-1][0]+pixel_value[i][0];
-}
-    for (int i = 1; i < num_of_rows; i++){  
-    for (int j = 1; j < num_of_cols; j++){
-    integral[i][j] = integral[i - 1 ][j] + integral [i][j - 1] - integral[i - 1] [j - 1] + pixel_value[i][j];       
-    }
-}
-
-ofstream output1("pixel_value.txt");  // output the intensity values of the pgm file
-for (int k=0; k<num_of_rows; k++)
-{
-    for (int r=0; r<num_of_cols; r++)
-    {
-        output1 << pixel_value[k][r] << " ";
-    }
-    output1 << ";" << endl;
-}
-
-ofstream output2("integral_value.txt");    // output the integral image
-for (int a=0; a<num_of_rows; a++)
-{
-    for (int b=0; b<num_of_cols; b++)
-    {
-        output2 << integral[a][b] << " ";
-    }
-    output2 << ";" << endl;
-}
-
-for(int i = 0; i < num_of_rows; ++i) {
-    delete [] pixel_value[i];
-}
-delete [] pixel_value;
-
-for(int i = 0; i < num_of_rows; ++i) {
-    delete [] integral[i];
-}
-delete [] integral;
-
-infile.close();  
-// system("pause");
-return 0;
-}
+    gaussianElimination(mat2); 
+  
+    return 0; 
+} 

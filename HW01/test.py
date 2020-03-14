@@ -153,7 +153,6 @@ def Gaussian(xy, index):
 
     for i in range(n):
         index[i] = i
-    print(index)
 
     for i in range(n):
         c1 = 0

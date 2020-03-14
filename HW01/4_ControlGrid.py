@@ -1,6 +1,8 @@
 ###################### import #########################
 from readpgm import read_pgm, list_to_2D_list, copy
 from writepgm import writepgm
+from GaussianElimination import gauss
+from etc_function import Bilinear
 
 ###################### set cutting point ############## 
 disgrid = [[[0,0],[16,0],[32,0],[48,0],[64,0],[80,0],[96,0],[112,0],[128,0],[144,0],[160,0],[176,0],[192,0],[208,0],[224,0],[240,0],[255,0]],
@@ -44,19 +46,65 @@ grid = [[[0,0],[16,0],[32,0],[48,0],[64,0],[80,0],[96,0],[112,0],[128,0],[144,0]
 
 ################## Function ###########################
 def ControlGrid(disgrid, grid, image, row, col):
+
     for i in range(len(grid)-1):
         for j in range(len(grid[i])-1):
+            #Variable
+            w = []      # answer from gauss function
+            x_new = [0] * 4
+            y_new = [0] * 4
+            x_old = [0] * 4
+            y_old = [0] * 4
+            #################
+
             #find W1 - W8 here
+            x_new[0] = grid[i][j][0]
+            x_new[1] = grid[i][j+1][0]
+            x_new[2] = grid[i+1][j][0]
+            x_new[3] = grid[i+1][j+1][0]
+
+            y_new[0] = grid[i][j][1]
+            y_new[1] = grid[i][j+1][1]
+            y_new[2] = grid[i+1][j][1]
+            y_new[3] = grid[i+1][j+1][1]
+
+            x_old[0] = disgrid[i][j][0]
+            x_old[1] = disgrid[i][j+1][0]
+            x_old[2] = disgrid[i+1][j][0]
+            x_old[3] = disgrid[i+1][j+1][0]
+
+            y_old[0] = disgrid[i][j][1]
+            y_old[1] = disgrid[i][j+1][1]
+            y_old[2] = disgrid[i+1][j][1]
+            y_old[3] = disgrid[i+1][j+1][1]
+
+            findWX = [[x_new[0], y_new[0], x_new[0]*y_new[0], 1, x_old[0]],
+                      [x_new[1], y_new[1], x_new[1]*y_new[1], 1, x_old[1]],
+                      [x_new[2], y_new[2], x_new[2]*y_new[2], 1, x_old[2]],
+                      [x_new[3], y_new[3], x_new[3]*y_new[3], 1, x_old[3]]]
+
+            findWY = [[x_new[0], y_new[0], x_new[0]*y_new[0], 1, y_old[0]],
+                      [x_new[1], y_new[1], x_new[1]*y_new[1], 1, y_old[1]],
+                      [x_new[2], y_new[2], x_new[2]*y_new[2], 1, y_old[2]],
+                      [x_new[3], y_new[3], x_new[3]*y_new[3], 1, y_old[3]]]
+
+            # call GaussianElimination
+            AnsWX = gauss(findWX)
+            AnsWY = gauss(findWY)
+
+            w.extend(AnsWX)
+            w.extend(AnsWY)
 
             ##################
 
             #mapping new image here
             for k in range(y_new[0],y_new[2]):
                 for l in range(x_new[0],x_new[1]):
-                    xp = (w[0]*l + w[1]*k + w[2]*l*k + w[3],0)
-                    yp = (w[4]*l + w[5]*k + w[6]*l*k + w[7],0)
-                    image_new[k][l] = image[yp][xp]
+                    xp = (w[0]*l + w[1]*k + w[2]*l*k + w[3])
+                    yp = (w[4]*l + w[5]*k + w[6]*l*k + w[7])
+                    image_new[k][l] = Bilinear(image, xp, yp)
             #######################
+    return image_new
 ################### Main ##############################
 filename = "./image/distlenna.pgm"
 converted_img = []
@@ -76,5 +124,5 @@ for i in range(row):
     image_new.append(image_new_inloop)
 
 image_new = ControlGrid(disgrid, grid, image, row, col)
-print(image_new)
-# writepgm("new_lenna.pgm", image_new, col, row)
+# print(image_new)
+writepgm("new_lenna.pgm", image_new, col, row)
