@@ -1,11 +1,20 @@
-###################### import #########################
 from readpgm import read_pgm, list_to_2D_list, copy
+from etc_function import solve4eqaultion, Bilinear
+# from dist_list import disgrid, grid as grid
 from writepgm import writepgm
-from GaussianElimination import gauss
-from etc_function import Bilinear
+filename = "./image/distlenna.pgm"
 
-###################### set cutting point ############## 
-disgrid = [[[0,0],[16,0],[32,0],[48,0],[64,0],[80,0],[96,0],[112,0],[128,0],[144,0],[160,0],[176,0],[192,0],[208,0],[224,0],[240,0],[255,0]],
+
+col = 0
+row = 0
+mattrix_img = []
+listimg, col, row = read_pgm(filename, col, row)
+mattrix_img = list_to_2D_list(listimg, mattrix_img, col, row)
+
+# dist = disgrid()
+# grid = gridt()
+
+dist = [[[0,0],[16,0],[32,0],[48,0],[64,0],[80,0],[96,0],[112,0],[128,0],[144,0],[160,0],[176,0],[192,0],[208,0],[224,0],[240,0],[255,0]],
            [[0,15],[16,15],[32,15],[48,15],[64,15],[80,15],[97,16],[114,17],[130,18],[145,18],[161,17],[176,15],[192,15],[208,15],[224,15],[240,15],[255,15]],
            [[0,31],[16,31],[32,31],[48,31],[66,32],[85,34],[103,36],[121,39],[136,41],[150,42],[163,40],[177,37],[192,33],[208,31],[224,31],[240,31],[255,31]],
            [[0,47],[16,47],[32,47],[51,48],[72,49],[93,52],[112,56],[128,59],[141,62],[154,64],[166,64],[178,62],[192,56],[207,50],[224,47],[240,47],[255,47]],
@@ -44,85 +53,72 @@ grid = [[[0,0],[16,0],[32,0],[48,0],[64,0],[80,0],[96,0],[112,0],[128,0],[144,0]
         [[0,255],[16,255],[32,255],[48,255],[64,255],[80,255],[96,255],[112,255],[128,255],[144,255],[160,255],[176,255],[192,255],[208,255],[224,255],[240,255],[255,255]],
         ]
 
-################## Function ###########################
-def ControlGrid(disgrid, grid, image, row, col):
-
-    for i in range(len(grid)-1):
-        for j in range(len(grid[i])-1):
-            #Variable
-            w = []      # answer from gauss function
-            x_new = [0] * 4
-            y_new = [0] * 4
-            x_old = [0] * 4
-            y_old = [0] * 4
-            #################
-
-            #find W1 - W8 here
-            x_new[0] = grid[i][j][0]
-            x_new[1] = grid[i][j+1][0]
-            x_new[2] = grid[i+1][j][0]
-            x_new[3] = grid[i+1][j+1][0]
-
-            y_new[0] = grid[i][j][1]
-            y_new[1] = grid[i][j+1][1]
-            y_new[2] = grid[i+1][j][1]
-            y_new[3] = grid[i+1][j+1][1]
-
-            x_old[0] = disgrid[i][j][0]
-            x_old[1] = disgrid[i][j+1][0]
-            x_old[2] = disgrid[i+1][j][0]
-            x_old[3] = disgrid[i+1][j+1][0]
-
-            y_old[0] = disgrid[i][j][1]
-            y_old[1] = disgrid[i][j+1][1]
-            y_old[2] = disgrid[i+1][j][1]
-            y_old[3] = disgrid[i+1][j+1][1]
-
-            findWX = [[x_new[0], y_new[0], x_new[0]*y_new[0], 1, x_old[0]],
-                      [x_new[1], y_new[1], x_new[1]*y_new[1], 1, x_old[1]],
-                      [x_new[2], y_new[2], x_new[2]*y_new[2], 1, x_old[2]],
-                      [x_new[3], y_new[3], x_new[3]*y_new[3], 1, x_old[3]]]
-
-            findWY = [[x_new[0], y_new[0], x_new[0]*y_new[0], 1, y_old[0]],
-                      [x_new[1], y_new[1], x_new[1]*y_new[1], 1, y_old[1]],
-                      [x_new[2], y_new[2], x_new[2]*y_new[2], 1, y_old[2]],
-                      [x_new[3], y_new[3], x_new[3]*y_new[3], 1, y_old[3]]]
-
-            # call GaussianElimination
-            AnsWX = gauss(findWX)
-            AnsWY = gauss(findWY)
-
-            w.extend(AnsWX)
-            w.extend(AnsWY)
-
-            ##################
-
-            #mapping new image here
-            for k in range(y_new[0],y_new[2]):
-                for l in range(x_new[0],x_new[1]):
-                    xp = (w[0]*l + w[1]*k + w[2]*l*k + w[3])
-                    yp = (w[4]*l + w[5]*k + w[6]*l*k + w[7])
-                    image_new[k][l] = Bilinear(image, xp, yp)
-            #######################
-    return image_new
-################### Main ##############################
-filename = "./image/distlenna.pgm"
-converted_img = []
-mattrix_img = []
-col = 0
-row = 0
-
-
-converted_img, col, row = read_pgm(filename, col, row)
-image = list_to_2D_list(converted_img, mattrix_img, col, row)
-
+x = [0]*4
+y = [0]*4
+w1_to_4 = [0]*4
+w5_to_8 = [0]*4
+w = [0]*8
+x_dist = [0]*4
+y_dist = [0]*4
+xy = []
+Am = []
+x_vertor_dist = [0]*4
+for i in range(4):
+    xy_in_loop = []
+    Am_in_loop = []
+    for j in range(4):
+        xy_in_loop.append(0)
+        Am_in_loop.append(0)
+    xy.append(xy_in_loop)
+    Am.append(Am_in_loop)
 image_new = []
 for i in range(row):
-    image_new_inloop = []
+    image_new_in_loop = []
     for j in range(col):
-        image_new_inloop.append(0)
-    image_new.append(image_new_inloop)
+        image_new_in_loop.append(0)
+    image_new.append(image_new_in_loop)
+count = 0
+for i in range(len(grid)-1):
+    for j in range(len(grid)-1):
+        x[0] = grid[i][j][0]
+        x[1] = grid[i][j+1][0]
+        x[2] = grid[i+1][j][0]
+        x[3] = grid[i+1][j+1][0]
 
-image_new = ControlGrid(disgrid, grid, image, row, col)
-# print(image_new)
-writepgm("new_lenna.pgm", image_new, col, row)
+        y[0] = grid[i][j][1]
+        y[1] = grid[i][j+1][1]
+        y[2] = grid[i+1][j][1]
+        y[3] = grid[i+1][j+1][1]
+        for k in range(4):
+            xy[k][0] = x[k]
+            xy[k][1] = y[k]
+            xy[k][2] = x[k]*y[k]
+            xy[k][3] = 1
+
+        # inverse = inverst(xy)
+        # print(inverse)
+        x_dist[0] = dist[i][j][0]
+        x_dist[1] = dist[i][j+1][0]
+        x_dist[2] = dist[i+1][j][0]
+        x_dist[3] = dist[i+1][j+1][0]
+
+        y_dist[0] = dist[i][j][1]
+        y_dist[1] = dist[i][j+1][1]
+        y_dist[2] = dist[i+1][j][1]
+        y_dist[3] = dist[i+1][j+1][1]
+        xy_new1 = copy(xy)
+        xy_new2 = copy(xy)
+        w1_to_4 = solve4eqaultion(xy_new1, x_dist)
+        w5_to_8 = solve4eqaultion(xy_new2, y_dist)
+        for k in range(len(w1_to_4)):
+            w[k] = w1_to_4[k]
+        for k in range(len(w5_to_8)):
+            w[k+4] = w5_to_8[k]
+        # if j == len(grid)-2 and i == len(grid)-2:
+        # print(w)
+        for k in range(y[0], y[2]):
+            for l in range(x[0], x[1]):
+                xp = (w[0]*l + w[1]*k + w[2]*l*k + w[3])
+                yp = (w[4]*l + w[5]*k + w[6]*l*k + w[7])
+                image_new[k][l] = Bilinear(mattrix_img, yp, xp)
+writepgm("new_lenna6.pgm", image_new, col, row)
